@@ -38,6 +38,12 @@ class PhotoSorter(QDialog):
 	    #then sort images and put into folders
 	    #when done maybe show text saying it's done
 	    #so user can then click button to show folders to see how photos were sorted
+	    #Given some k number of photo clusters, create k subfolders
+	   	subfolder_names = np.linspace(0,k,num=k+1).astype(str)
+	   	for folder_num in subfolder_names:
+	   		os.makedirs(os.path.join('sorted_images', subfolder_name))
+	    #place images into their appropriate subfolders
+	    
 
 app = QApplication(sys.argv)
 window = PhotoSorter()
