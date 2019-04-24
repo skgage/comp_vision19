@@ -4,6 +4,7 @@ from scipy.spatial.distance import pdist, squareform
 import glob
 import os.path
 import cv2
+from collections import Counter
 
 def km_cluster(img, k):
 
@@ -76,12 +77,12 @@ def calc_distance(segment_means):
     return squareform(distances)
 
 # Import set of photos and calculate distances between their kmeans segments
-def calc_photo_dists(folder_path, k):
+def calc_photo_dists(files, k):
 
     # size to set
     set_height = 240
 
-    files = glob.glob(os.path.join(folder_path, '*.jpg'))
+    # files = glob.glob(os.path.join(folder_path, '*.jpg'))
 
     num_files = len(files)
 
@@ -109,6 +110,32 @@ def calc_photo_dists(folder_path, k):
 
         means[i, :] = cluster_means(img, clustered)
 
-    dists = calc_distance(means)
+    # dists = calc_distance(means)
 
-    return means, dists, file_idx
+    return means, file_idx
+
+# Take locations of image segments means and return binned index
+# group size as fraction
+def bin_photos(files, segment_k, max_group_frac):
+
+    means, file_idx = calc_photo_dists(files, segment_k)
+
+    folder_size = len(file_idx)
+
+    whitened = whiten(means)
+
+    bins = (folder_size // 10) + 1
+    # Returns the centroids
+    while bins < folder_size:
+
+        codebook, distortion = kmeans(whitened, bins)
+
+        # centroids used to classify each point to nearest centroid
+        codes, d = vq(whitened, codebook)
+
+        if (np.max(list(Counter(codes).values())) / folder_size) > max_group_frac:
+            bins += 1
+        else:
+            break
+
+    return file_idx, codes, means, bins
