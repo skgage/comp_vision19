@@ -138,4 +138,7 @@ def bin_photos(files, segment_k, max_group_frac):
         else:
             break
 
+
     return file_idx, codes, means, bins
+
+

@@ -26,16 +26,6 @@
     <string>Select initial image to sort</string>
    </property>
   </widget>
-  <widget class="QListWidget" name="listWidget">
-   <property name="geometry">
-    <rect>
-     <x>40</x>
-     <y>200</y>
-     <width>256</width>
-     <height>192</height>
-    </rect>
-   </property>
-  </widget>
   <widget class="QPushButton" name="pushButton2">
    <property name="geometry">
     <rect>
@@ -49,26 +39,36 @@
     <string>Select additional images to add to sort</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label1">
+  <widget class="QLabel" name="label2">
    <property name="geometry">
     <rect>
-     <x>50</x>
+     <x>460</x>
      <y>180</y>
      <width>91</width>
      <height>16</height>
     </rect>
    </property>
    <property name="text">
-    <string>Results:</string>
+    <string>Image Types:</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton">
+  <widget class="QSpinBox" name="spinBox">
    <property name="geometry">
     <rect>
-     <x>330</x>
-     <y>140</y>
-     <width>113</width>
-     <height>32</height>
+     <x>570</x>
+     <y>400</y>
+     <width>48</width>
+     <height>24</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="image_viewer">
+   <property name="geometry">
+    <rect>
+     <x>460</x>
+     <y>200</y>
+     <width>241</width>
+     <height>181</height>
     </rect>
    </property>
    <property name="text">

@@ -1,19 +1,24 @@
 import k_means_funcs as kmf
+from scipy.cluster.vq import vq, kmeans, whiten
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import plotly.plotly as py
 import plotly
+import glob
+import os.path
 import plotly.graph_objs as go
+from collections import Counter
 
-means, dists, file_idx = kmf.calc_photo_dists("/Users/teopb/Desktop/PhotoSorter_images", 2)
+folder_path = "/Users/teopb/Desktop/photo_sample"
 
-print(file_idx)
-print(dists)
+files = glob.glob(os.path.join(folder_path, '*.jpg'))
 
-fig = plt.figure()
-ax = Axes3D(fig)
-ax.scatter(means[:, 0], means[:, 1], means[:, 2])
-plt.show()
+file_idx, codes, means, bins = kmf.bin_photos(files, 2, .25)
+
+# fig = plt.figure()
+# ax = Axes3D(fig)
+# ax.scatter(means[:, 0], means[:, 1], means[:, 2])
+# plt.show()
 
 trace1 = go.Scatter3d(
     x=means[:, 0],
@@ -21,12 +26,10 @@ trace1 = go.Scatter3d(
     z=means[:, 2],
     mode='markers',
     marker=dict(
-        size=12,
-        line=dict(
-            color=means[:, 2],
-            width=0.5
-        ),
-        opacity=0.8
+        size=16,
+        color = codes, #set color equal to a variable
+        colorscale='Jet',
+        showscale=True
     )
 )
 
