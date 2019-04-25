@@ -1,0 +1,33 @@
+For our project we hoped to implement "Option A. Photo Sorter". Our goal was to make a program that could group together similar photos and perhaps even suggest whether photos contained the same object and thus we're duplicates of sorts. We wanted to have a simple interface that would allow the user to select the photos they wanted to sort and hopefully be able to add additional photos without needing to rerun the entire program.
+
+We broke our approach into two parts to address what seemed to be two different use cases. First, we wanted to relatively fast approach to look at all photos and move them into groups of "similar" photos. Under the assumption that "duplicate" photos would inherently be "similar" we could then use a slower algorithm to identify duplicate photos because we would only be comparing within a reduced pool. Also if we could do a large portion of the computation only once and reuse when a single new photo would be added that would be great.
+
+For the first part we first generated k-means segmentations for all photos. This does take significant time but it is helped by the ability to resize images first and the ability to use a low number of segments. Then we store the mean RGB value for each photo's segments, sorted by relative size of the segment. For example, if we used 3 segments then every photo would now be represented by a 9 dimensional vector (3 * (R, G, B)). Now we have greatly reduced the dimensionality of our data and can run a new k-means segmentation on all the photos. The final number of grouping depends on a restriction we can set for the relative size of the largest group of photos. Perhaps no more than 1/3 of all photos should be considered grouped together. By thinking of photos as being spatially related in this lower dimensional space we can also visualize the groupings effectively by some 3 dimensional subset of the values. If we do so for the mean RGB value of the largest segment we get a graph such as below.
+
+[INSERT GRAPH OF SPATIALLY GROUPED PHOTOS]
+
+By storing these lower dimensional representations of the photos we can relatively quickly re-sort when a new photo is added.
+
+[Discussion of SIFT feature breakdown]
+
+Do display our results and allow the user to interact with our program we built a simple GUI using the QT library. A user can select photos to sort in a file browser which will then be placed in their own subfolders. The program allows the user to then cycle through a sample photo for each subgroup to give a sense of how the photos were divided. Additionally a user can select to then add a single photo to an existing sorted group.
+
+[Discussion of results. Did our final groupings make sense?]
+
+Challenges:
+
+One of our main goals for this project was to take what we had learned and replicate it in a form that would be somewhat user friendly and not require technical knowledge of computer vision or Matlab. This meant we couldn't just reuse the Matlab code we had created throughout the course. In order to use open source tools like OpenCV, Python, Numpy, Scipy, and QT we had to really understand what we did before and sometimes dig back into code to figure out why a particular choice was made. While time-consuming, it certainly helped reinforce our understanding and help make our skills more flexible since we can now take advantage of new tools. This was also part of our motivation in using the techniques we learned in class instead of a neural networks approach, which likely would of outperformed our own in many ways. We were able to make implementation choices based on our understanding of the methods as opposed to black box modules.
+
+Something that is a limitation of our method is that it doesn't incorporate any training data to develop groupings. It is not trained, so to speak. This gives us flexibility and means one doesn't have to label a large set of photos but it also means that we aren't going to be able to make very granular structural distinctions between photos.
+
+Work Breakdown:
+
+Sarah worked on the SIFT implementation and built a lot of the interface for loading photos. Teo worked on the k-means sorter for segments and similar photos and helped build the photo display portions of the interface.
+
+Citation:
+
+This work makes extensive use of built in functions from the libraries listed above. In addition the approaches borrow heavily from assignments done through out the semester. The glue that holds this together is almost entirely original.
+
+Advice for next year's students
+
+If course is taught using Matlab make sure to take advantage of the profiler tools, they are one of the things that makes Matlab unique. Matrix dimensions will be the bane of your existence so it is never a bad idea to be printing out matrix shapes and making sure they match up. A 3x2 matrix is not a 3x2x1 matrix despite having the same number of entries. Start with small simples cases to get the math and matrices working at a scale where you can still confirm your program is doing what you expect. 
