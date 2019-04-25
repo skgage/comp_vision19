@@ -14,6 +14,7 @@ import shutil
 import k_means_funcs as kmf
 import time
 import glob
+import test_surf as surf
 
 def load_images_from_folder(folder):
     images = []
@@ -73,6 +74,7 @@ class PhotoSorter(QDialog):
         for subfolder_name in subfolder_names:
             os.makedirs(os.path.join('sorted_images', subfolder_name), exist_ok=True)
         print ('Subfolders created with initial images.', len(self.images), " images sorted.")
+
         #place images into their appropriate subfolders
         for i in range(len(file_idx)):
             src_img_path = self.images[i]
@@ -86,7 +88,7 @@ class PhotoSorter(QDialog):
         self.photo_spinBox.setMaximum(len(glob.glob(os.path.join("sorted_images/"+str(0)+'/', '*.jpg'))) - 1)
         self.display_image()
         # TODO: Do we need this return?
-        return names
+        #return names
 
     def loadFiles_add(self):
         dir_name = "sorted_images"
