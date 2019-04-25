@@ -62,19 +62,21 @@ class PhotoSorter(QDialog):
         # Sort Photos, codes are the subfolder that each got sorted into. Second input is number of segments that are calculated for each image. k depends on how close data is. Final input is the relative size of the largest cluster
 
         # Sort Photos, codes are the subfolder that each got sorted into. Second input is number of segments that are calculated for each image. k depends on how close data is. Final input is the relative size of the largest cluster.
-        file_idx, codes, means, k = kmf.bin_photos(self.images, 2, .3)
-        print(file_idx)
 
-        print(codes)
+        # TODO: store photo means to allow for resort
+        self.file_idx, codes, self.means, k = kmf.bin_photos(self.images, 2, .3)
+
+        # print(k)
+        # print(codes)
 
         subfolder_names = np.linspace(0, k-1, num=k, dtype='i').astype(str)
-        print(subfolder_names)
+        # print(subfolder_names)
 
         for subfolder_name in subfolder_names:
             os.makedirs(os.path.join('sorted_images', subfolder_name), exist_ok=True)
-        print ('Subfolders created with initial images.', len(self.images), " images sorted.")
+        # print ('Subfolders created with initial images.', len(self.images), " images sorted.")
         #place images into their appropriate subfolders
-        for i in range(len(file_idx)):
+        for i in range(len(self.file_idx)):
             src_img_path = self.images[i]
             fid = codes[i]
             #img = src_img_path.split("prack/",1)[1]
@@ -107,16 +109,18 @@ class PhotoSorter(QDialog):
         #when done maybe show text saying it's done
         #so user can then click button to show folders to see how photos were sorted
 
+        # print(names)
         #Given some k number of photo clusters, create k subfolders
-        file_idx, codes, means, k = kmf.bin_photos(self.images, 2, .3)
-        print(codes)
+        self.file_idx, codes, self.means, k = kmf.re_bin_photos(self.file_idx, self.means, .3, names[0])
+        # print(codes)
+        # print(k)
 
         subfolder_names = np.linspace(0, k-1, num=k, dtype='i').astype(str)
 
         for subfolder_name in subfolder_names:
-            os.makedirs(os.path.join('sorted_images', subfolder_name))
+            os.makedirs(os.path.join('sorted_images', subfolder_name), exist_ok=True)
 
-        for i in range(len(file_idx)):
+        for i in range(len(self.file_idx)):
             src_img_path = self.images[i]
             fid = codes[i]
             #img = src_img_path.split("prack/",1)[1]
@@ -124,6 +128,11 @@ class PhotoSorter(QDialog):
             shutil.copy(src_img_path, des_loc)
         print ('Subfolders created with additional images.', len(self.images), " images sorted.")
         #place images into their appropriate subfolders
+
+        # Code for photo viewer
+        self.group_spinBox.setMaximum(k-1)
+        self.photo_spinBox.setMaximum(len(glob.glob(os.path.join("sorted_images/"+str(0)+'/', '*.jpg'))) - 1)
+        self.display_image()
 
     def group_change(self):
         group = self.group_spinBox.value()
@@ -141,8 +150,9 @@ class PhotoSorter(QDialog):
 
         folder = glob.glob(os.path.join("sorted_images/"+str(group)+'/', '*.jpg'))
 
-        self.pix_map = QPixmap(folder[photo])
-        self.image_viewer.setPixmap(self.pix_map.scaledToWidth(self.image_viewer.width()))
+        if len(folder) > 0:
+            self.pix_map = QPixmap(folder[photo])
+            self.image_viewer.setPixmap(self.pix_map.scaledToWidth(self.image_viewer.width()))
 
 app = QApplication(sys.argv)
 window = PhotoSorter()
