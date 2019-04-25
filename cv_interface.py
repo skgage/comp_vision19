@@ -20,7 +20,6 @@ def load_images_from_folder(folder):
     for filename in folder:
         img = cv2.imread(filename)
         img = cv2.resize(img, (1000,1000))
-        #print(np.shape(img))
         if img is not None:
             images.append(img)
     return images
@@ -47,8 +46,6 @@ class PhotoSorter(QDialog):
         file_name = QFileDialog()
         file_name.setFileMode(QFileDialog.ExistingFiles)
         names, _ = file_name.getOpenFileNames(self, "Open files", "C\\Desktop", filter)
-        #print (names)
-        # print(np.shape(load_images_from_folder(names)))
 
         if os.path.exists('init_images.pkl'):
             os.remove('init_images.pkl')
@@ -63,18 +60,13 @@ class PhotoSorter(QDialog):
 
         # Sort Photos, codes are the subfolder that each got sorted into. Second input is number of segments that are calculated for each image. k depends on how close data is. Final input is the relative size of the largest cluster.
 
-        # TODO: store photo means to allow for resort
         self.file_idx, codes, self.means, k = kmf.bin_photos(self.images, 2, .3)
 
-        # print(k)
-        # print(codes)
-
         subfolder_names = np.linspace(0, k-1, num=k, dtype='i').astype(str)
-        # print(subfolder_names)
 
         for subfolder_name in subfolder_names:
             os.makedirs(os.path.join('sorted_images', subfolder_name), exist_ok=True)
-        # print ('Subfolders created with initial images.', len(self.images), " images sorted.")
+        print ('Subfolders created with initial images.', len(self.images), " images sorted.")
         #place images into their appropriate subfolders
         for i in range(len(self.file_idx)):
             src_img_path = self.images[i]
@@ -98,22 +90,16 @@ class PhotoSorter(QDialog):
         file_name = QFileDialog()
         file_name.setFileMode(QFileDialog.ExistingFiles)
         names, _ = file_name.getOpenFileNames(self, "Open files", "C\\Desktop", filter)
-        #print (names)
-        #print(np.shape(load_images_from_folder(names)))
 
         with open('init_images.pkl', 'rb') as f:
             images = pickle.load(f)
             self.images = np.append(images, names)
-        #print(self.images)
         #then sort images and put into folders
         #when done maybe show text saying it's done
         #so user can then click button to show folders to see how photos were sorted
 
-        # print(names)
         #Given some k number of photo clusters, create k subfolders
         self.file_idx, codes, self.means, k = kmf.re_bin_photos(self.file_idx, self.means, .3, names[0])
-        # print(codes)
-        # print(k)
 
         subfolder_names = np.linspace(0, k-1, num=k, dtype='i').astype(str)
 

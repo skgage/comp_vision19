@@ -8,8 +8,6 @@ from collections import Counter
 
 def km_cluster(img, k):
 
-    # print(img.shape)
-
     x, y, channels = img.shape
 
     xi, yi = np.meshgrid(range(x), range(y))
@@ -82,8 +80,6 @@ def calc_photo_dists(files, k):
     # size to set
     set_height = 240
 
-    # files = glob.glob(os.path.join(folder_path, '*.jpg'))
-
     num_files = len(files)
 
     file_idx = []
@@ -92,14 +88,8 @@ def calc_photo_dists(files, k):
 
     for f, i in zip(files, range(num_files)):
 
-        # print(f)
-
         img = cv2.imread(f)
 
-        # print(img.shape)
-        # Todo check for greyscale and convert
-
-        # TODO resize
         (h, w, c) = img.shape
         ratio = set_height/h
         img = cv2.resize(img, None, fx = ratio, fy = ratio)
@@ -110,8 +100,6 @@ def calc_photo_dists(files, k):
 
         means[i, :] = cluster_means(img, clustered)
 
-    # dists = calc_distance(means)
-
     return means, file_idx
 
 # Take locations of image segments means and return binned index
@@ -121,8 +109,6 @@ def bin_photos(files, segment_k, max_group_frac):
     means, file_idx = calc_photo_dists(files, segment_k)
 
     folder_size = len(file_idx)
-
-    # print(means.shape)
 
     whitened = whiten(means)
 
@@ -161,16 +147,11 @@ def re_bin_photos(old_file_idx, old_means, max_group_frac, new_file):
     clustered = km_cluster(img, k_3 / 3)
     new_mean = np.reshape(cluster_means(img, clustered), (1, k_3))
 
-    # print(old_means.shape)
-    # print(new_mean.shape)
-
     means = np.append(old_means, new_mean, axis=0)
 
     # resort:
     folder_size = len(old_file_idx)
 
-    # print(means[0, :])
-    # print(means[len(means) -1, :])
     whitened = whiten(means)
 
     bins = (folder_size // 10) + 1
@@ -186,9 +167,5 @@ def re_bin_photos(old_file_idx, old_means, max_group_frac, new_file):
             bins += 1
         else:
             break
-
-    print(f"number of bins: {bins}")
-
-    print(codes)
 
     return old_file_idx, codes, means, bins
