@@ -13,6 +13,7 @@ import pickle
 import shutil
 import k_means_funcs as kmf
 import time
+import glob
 
 def load_images_from_folder(folder):
     images = []
@@ -33,7 +34,8 @@ class PhotoSorter(QDialog):
         self.pushButton2.clicked.connect(self.loadFiles_add)
 
         # # Code for photo viewer
-        self.spinBox.valueChanged.connect(self.display_image)
+        self.group_spinBox.valueChanged.connect(self.group_change)
+        self.photo_spinBox.valueChanged.connect(self.display_image)
     @pyqtSlot()
     def on_pushButton_clicked(self):
         self.label1.setText('Welcome: '+self.lineEdit1.text()+ ' '+self.lineEdit2.text())
@@ -57,13 +59,7 @@ class PhotoSorter(QDialog):
         #when done maybe show text saying it's done
         #so user can then click button to show folders to see how photos were sorted
         #Given some k number of photo clusters, create k subfolders
-        # Sort Photos, codes are the subfolder that each got sorted into. Second input is number of segments that are calculated for each image. k depends on how close data is. Final input is the relative size of the largest cluster.
-        # Code for photo viewer
-        print("show images")
-        self.spinBox.setMaximum(len(self.images)-1)
-
-        self.pix_map = QPixmap(self.images[0])
-        self.image_viewer.setPixmap(self.pix_map.scaledToWidth(self.image_viewer.width()))
+        # Sort Photos, codes are the subfolder that each got sorted into. Second input is number of segments that are calculated for each image. k depends on how close data is. Final input is the relative size of the largest cluster
 
         # Sort Photos, codes are the subfolder that each got sorted into. Second input is number of segments that are calculated for each image. k depends on how close data is. Final input is the relative size of the largest cluster.
         file_idx, codes, means, k = kmf.bin_photos(self.images, 2, .3)
@@ -85,7 +81,13 @@ class PhotoSorter(QDialog):
             des_loc = "sorted_images/"+str(fid)
             shutil.copy(src_img_path, des_loc)
 
+        # Code for photo viewer
+        self.group_spinBox.setMaximum(k-1)
+        self.photo_spinBox.setMaximum(len(glob.glob(os.path.join("sorted_images/"+str(0)+'/', '*.jpg'))) - 1)
+        self.display_image()
+        # TODO: Do we need this return?
         return names
+
     def loadFiles_add(self):
         dir_name = "sorted_images"
         if os.path.isdir(dir_name):
@@ -122,11 +124,24 @@ class PhotoSorter(QDialog):
             shutil.copy(src_img_path, des_loc)
         print ('Subfolders created with additional images.', len(self.images), " images sorted.")
         #place images into their appropriate subfolders
+
+    def group_change(self):
+        group = self.group_spinBox.value()
+
+        self.photo_spinBox.setMaximum(len(glob.glob(os.path.join("sorted_images/"+str(group)+'/', '*.jpg'))) - 1)
+
+        self.photo_spinBox.setValue(0)
+
+        self.display_image()
+
     def display_image(self):
         # Get index from spinBox
-        idx = self.spinBox.value()
+        group = self.group_spinBox.value()
+        photo = self.photo_spinBox.value()
 
-        self.pix_map = QPixmap(self.images[idx])
+        folder = glob.glob(os.path.join("sorted_images/"+str(group)+'/', '*.jpg'))
+
+        self.pix_map = QPixmap(folder[photo])
         self.image_viewer.setPixmap(self.pix_map.scaledToWidth(self.image_viewer.width()))
 
 app = QApplication(sys.argv)
