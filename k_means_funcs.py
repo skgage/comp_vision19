@@ -8,8 +8,6 @@ from collections import Counter
 
 def km_cluster(img, k):
 
-    # print(img.shape)
-
     x, y, channels = img.shape
 
     xi, yi = np.meshgrid(range(x), range(y))
@@ -82,8 +80,6 @@ def calc_photo_dists(files, k):
     # size to set
     set_height = 240
 
-    # files = glob.glob(os.path.join(folder_path, '*.jpg'))
-
     num_files = len(files)
 
     file_idx = []
@@ -92,14 +88,8 @@ def calc_photo_dists(files, k):
 
     for f, i in zip(files, range(num_files)):
 
-        # print(f)
-
         img = cv2.imread(f)
 
-        # print(img.shape)
-        # Todo check for greyscale and convert
-
-        # TODO resize
         (h, w, c) = img.shape
         ratio = set_height/h
         img = cv2.resize(img, None, fx = ratio, fy = ratio)
@@ -109,8 +99,6 @@ def calc_photo_dists(files, k):
         clustered = km_cluster(img, k)
 
         means[i, :] = cluster_means(img, clustered)
-
-    # dists = calc_distance(means)
 
     return means, file_idx
 
@@ -133,7 +121,7 @@ def bin_photos(files, segment_k, max_group_frac):
         # centroids used to classify each point to nearest centroid
         codes, d = vq(whitened, codebook)
 
-        if (np.max(list(Counter(codes).values())) / folder_size) > max_group_frac:
+        if (np.max(list(Counter(codes).values())) / folder_size) > max_group_frac and bins + 1 < folder_size:
             bins += 1
         else:
             break
@@ -141,4 +129,43 @@ def bin_photos(files, segment_k, max_group_frac):
 
     return file_idx, codes, means, bins
 
+def re_bin_photos(old_file_idx, old_means, max_group_frac, new_file):
 
+    # Append file to list
+    old_file_idx.append(new_file)
+
+    # get means for new file
+    n, k_3 = old_means.shape
+
+    img = cv2.imread(new_file)
+
+    set_height = 240
+    (h, w, c) = img.shape
+    ratio = set_height/h
+    img = cv2.resize(img, None, fx = ratio, fy = ratio)
+
+    clustered = km_cluster(img, k_3 / 3)
+    new_mean = np.reshape(cluster_means(img, clustered), (1, k_3))
+
+    means = np.append(old_means, new_mean, axis=0)
+
+    # resort:
+    folder_size = len(old_file_idx)
+
+    whitened = whiten(means)
+
+    bins = (folder_size // 10) + 1
+    # Returns the centroids
+    while bins < folder_size:
+
+        codebook, distortion = kmeans(whitened, bins)
+
+        # centroids used to classify each point to nearest centroid
+        codes, d = vq(whitened, codebook)
+
+        if (np.max(list(Counter(codes).values())) / folder_size) > max_group_frac and bins + 1 < folder_size:
+            bins += 1
+        else:
+            break
+
+    return old_file_idx, codes, means, bins
