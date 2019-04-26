@@ -32,11 +32,37 @@ class PhotoSorter(QDialog):
         self.setWindowTitle('PhotoSorter Gui')
         self.pushButton1.clicked.connect(self.loadFiles_new)
         self.pushButton2.clicked.connect(self.loadFiles_add)
+        self.pushButton3.clicked.connect(self.findDuplicates)
 
         # # Code for photo viewer
         self.group_spinBox.valueChanged.connect(self.group_change)
         self.photo_spinBox.valueChanged.connect(self.display_image)
+        self.spinBox3.valueChanged.connect(self.dup_group_change)
+        self.spinBox4.valueChanged.connect(self.dup_display_image)
     @pyqtSlot()
+    def findDuplicates(self):
+        folder = str(QFileDialog.getExistingDirectory(self, "Select Directory", "sorted_images"))
+        
+        [dup_list, filenames] = surf.find_duplicates(folder) # eg "sorted_images/0"
+        print ('Duplicate list check: {}'.format(dup_list))
+        dir_name = "sorted_images/duplicates"
+        if os.path.isdir(dir_name):
+            shutil.rmtree(dir_name)
+        dup_counter = 1
+        for i in range(len(dup_list)):
+            img = filenames[i]
+            print (img)
+            if (dup_list[i] != 0):
+                if ~os.path.isdir("sorted_images/duplicates/"+str(int(dup_list[i]-1))):
+                    os.makedirs(os.path.join('sorted_images/duplicates/', str(int(dup_list[i]-1))), exist_ok=True)
+                des_loc = "sorted_images/duplicates/"+str(int(dup_list[i]-1))
+                shutil.copy(img, des_loc)
+
+        # Code for photo viewer
+        self.spinBox3.setMaximum(max(dup_list)-1)
+        self.spinBox4.setMaximum(len(glob.glob(os.path.join("sorted_images/duplicates/"+str(0)+'/', '*.jpg')))-1)
+        self.dup_display_image()
+
     def on_pushButton_clicked(self):
         self.label1.setText('Welcome: '+self.lineEdit1.text()+ ' '+self.lineEdit2.text())
     def loadFiles_new(self):
@@ -96,6 +122,8 @@ class PhotoSorter(QDialog):
         with open('init_images.pkl', 'rb') as f:
             images = pickle.load(f)
             self.images = np.append(images, names)
+        with open('init_images.pkl','wb') as file:
+            pickle.dump(self.images, file)
         #then sort images and put into folders
         #when done maybe show text saying it's done
         #so user can then click button to show folders to see how photos were sorted
@@ -135,12 +163,33 @@ class PhotoSorter(QDialog):
         # Get index from spinBox
         group = self.group_spinBox.value()
         photo = self.photo_spinBox.value()
+        print ('photo :', photo)
 
         folder = glob.glob(os.path.join("sorted_images/"+str(group)+'/', '*.jpg'))
 
         if len(folder) > 0:
             self.pix_map = QPixmap(folder[photo])
             self.image_viewer.setPixmap(self.pix_map.scaledToWidth(self.image_viewer.width()))
+
+    def dup_group_change(self):
+        group = self.spinBox3.value()
+
+        self.spinBox3.setMaximum(len(glob.glob(os.path.join("sorted_images/duplicates/"+str(group)+'/', '*.jpg'))) - 1)
+
+        self.spinBox4.setValue(0)
+
+        self.dup_display_image()
+
+    def dup_display_image(self):
+        # Get index from spinBox
+        group = self.spinBox3.value()
+        photo = self.spinBox4.value()
+
+        folder = glob.glob(os.path.join("sorted_images/duplicates/"+str(group)+'/', '*.jpg'))
+
+        if len(folder) > 0:
+            self.pix_map = QPixmap(folder[photo])
+            self.duplicate_viewer.setPixmap(self.pix_map.scaledToWidth(self.duplicate_viewer.width()))
 
 app = QApplication(sys.argv)
 window = PhotoSorter()
